@@ -1,11 +1,26 @@
 class JobPostsController < ApplicationController
-  JobPost = Struct.new(:id, :source)
+  # 構造体定義（コントローラ上部）
+  # keyword_init: true をつけることで、Struct の new メソッドが キーワード引数（名前付き引数） を受け取れるようになる
+  JobPost = Struct.new(:id, :source, keyword_init: true)
+
+  def interleaving
+    user_id  = params[:user_id].to_i
+    page     = params[:page].to_i
+    per_page = params[:per_page].to_i
+
+    result = interleaved_job_posts_for(user_id, page, per_page)
+
+    render json: result.map { |job| { id: job.id, source: job.source.to_s } }
+
+  end
+
+  private
 
   # @param [Integer] user_id アクセスしたユーザーのID
   # @param [Integer] page ページ番号（1から始まる）
   # @param [Integer] per_page 1ページあたりの要求するアイテム数（基本は10だが、場合によって異なる）
   # @return [Array<JobPost>] 募集のリスト
-  def interleaving(user_id, page, per_page)
+  def interleaved_job_posts_for(user_id, page, per_page)
     # ここに実装を追加してください
     # 以下のように、「募集のID」と「どのアルゴリズム由来の募集かを表す文字列等」のペアの配列を返してください
     # [
@@ -38,7 +53,7 @@ class JobPostsController < ApplicationController
         na_idx += 1 # 次に見る位置を1つ進めておく
         unless seen_ids[id] # このIDがまだ追加されていなければ（重複防止）
           # JobPost オブジェクトを作成して merged に追加（new_algorithm由来として）
-          merged << JobPost.new(id: id, source: :new_algorithm)
+          merged << JobPost.new({ id: id, source: :new_algorithm })
           seen_ids[id] = true # このIDはすでに使用済みと記録しておく
           break # 追加されたら終了
         end
@@ -49,7 +64,7 @@ class JobPostsController < ApplicationController
         id = old_ids[oa_idx]
         oa_idx += 1
         unless seen_ids[id]
-          merged << JobPost.new(id: id, source: :old_algorithm)
+          merged << JobPost.new({ id: id, source: :old_algorithm })
           seen_ids[id] = true
           break
         end

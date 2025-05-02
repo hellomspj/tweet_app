@@ -23,6 +23,8 @@ Rails.application.routes.draw do
   # 破棄機能(DBに変更を加えるルーティング)
   post "posts/:id/destroy" => "posts#destroy"
 
+  get 'job_posts/interleaving', to: 'job_posts#interleaving'
+
   get "users/index" => "users#index"
   post "users/create" => "users#create"
   get "users/:id" => "users#show"
